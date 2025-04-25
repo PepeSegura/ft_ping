@@ -1,0 +1,13 @@
+{
+    "name": "ft_ping Development",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh"
+    },
+    "extensions": [
+        "ms-vscode.cpptools",
+    ],
+    "postCreateCommand": "chsh -s $(which zsh)"
+}
