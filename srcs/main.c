@@ -32,48 +32,57 @@
 //     return (0);
 // }
 
-int main(void)
-{
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
+char	*resolve_hostname(const char *hostname)
+{
+	struct addrinfo in_info, *result;
+	char ip_str[INET6_ADDRSTRLEN];
+
+	memset(&in_info, 0, sizeof(in_info));
+	in_info.ai_family = AF_UNSPEC;
+	in_info.ai_socktype = SOCK_RAW;
+
+	int ret;
+	if ((ret = getaddrinfo(hostname, NULL, &in_info, &result)) != 0)
+	{
+		dprintf(2, "getaddrinfo: %s\n", gai_strerror(ret));
+		return (NULL);
+	}
+
+	void	*addr;
+
+	if (result->ai_family == AF_INET)
+	{
+		struct sockaddr_in *ipv4 = (struct sockaddr_in *)result->ai_addr;
+		addr = &(ipv4->sin_addr);
+	}
+	else
+	{
+		struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)result->ai_addr;
+		addr = &(ipv6->sin6_addr);
+	}
+	inet_ntop(result->ai_family, addr, ip_str, sizeof(ip_str));
+
+	printf("%s (%s):\n", hostname, ip_str);
+
+	freeaddrinfo(result);
+	return (strdup(ip_str));
 }
 
-
-int	create_server_socket(int port)
+int main(int argc, char **argv)
 {
-	int	server_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_socket == -1)
-	{
-		perror("socket creation failed");
-		exit(EXIT_FAILURE);
-	}
-
-	struct sockaddr_in address;
-
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(port);
-
-	int optval = 1;
-	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
-	{
-		perror("setsockopt failed");
-		exit(EXIT_FAILURE);
-	}
-	//Used to make the socket non-blocking
-	if (fcntl(server_socket, F_SETFL, O_NONBLOCK))
-	{
-		perror("fcntl failed");
-		exit(EXIT_FAILURE);
-	}
-	if (bind(server_socket, (struct sockaddr *)&address, sizeof(address)) < 0)
-	{
-		perror("bind failed");
-		exit(EXIT_FAILURE);
-	}
-	if (listen(server_socket, MAX_CLIENTS) < 0)
-	{
-		perror("listen failed");
-		exit(EXIT_FAILURE);
-	}
-	return (server_socket);
+	if (argc != 2)
+		return (1);
+	char *ip_address_str = resolve_hostname(argv[1]);
+	if (ip_address_str)
+		free(ip_address_str);
+	return (0);
 }
