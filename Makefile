@@ -15,6 +15,10 @@ HEADERS      = -I ./inc
 
 FILES       =											\
 				srcs/main.c								\
+				srcs/init.c								\
+				srcs/send.c								\
+				srcs/recv.c								\
+				srcs/tools.c							\
 				srcs/flag_parser.c						\
 
 
@@ -23,6 +27,7 @@ OBJS = $(patsubst srcs/%.c, objs/srcs/%.o, $(FILES))
 DEPS       = $(OBJS:.o=.d)
 
 all: $(NAME)
+	@- sudo setcap cap_net_raw+ep $(NAME)
 
 $(NAME): $(OBJS)
 	$(CC) $(DEBUG) $(OBJS) $(LIBS) $(HEADERS) -o $(NAME) && printf "Linking: $(NAME)\n"

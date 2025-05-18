@@ -3,6 +3,7 @@
 
 # include "flag_parser.h"
 
+# include <signal.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -22,5 +23,44 @@
 
 # include <fcntl.h>
 # include <poll.h>
+
+enum sock_type {
+    TYPE_RAW,
+    TYPE_DGRAM,
+};
+
+typedef struct s_ping {
+	char	*hostname;
+	char	*ip_addr;
+	int		socket_type;
+	int		server_sock;
+
+    int     sequence;
+}	t_ping;
+
+typedef struct s_payload{
+	uint16_t sequence;
+	struct timeval timestamp;
+	char data[48];
+} t_payload;
+
+typedef struct s_packet {
+	struct icmphdr hdr;
+	t_payload payload;
+}   t_packet;
+
+typedef struct icmphdr t_icmphdr;
+typedef uint8_t byte;
+
+/* init.c */
+void        init_t_ping(t_ping *ping, char **argv);
+
+/* tools.c */
+uint16_t    checksum(void *buffer, size_t len);
+double      time_diff(struct timeval *prev);
+
+/* send.c */
+void send_packet(t_ping *ping);
+void recv_packet(t_ping *ping);
 
 #endif
