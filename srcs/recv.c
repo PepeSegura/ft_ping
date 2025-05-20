@@ -52,4 +52,5 @@ void recv_packet(t_ping *p)
 		);
 		break ;
 	}
+	p->read_count++;
 }

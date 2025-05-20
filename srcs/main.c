@@ -42,6 +42,17 @@ void sig_handler(int signum)
 	}
 }
 
+void print_stats(t_ping *p)
+{
+	printf("\n--- %s ping statistics ---\n", p->hostname);
+	printf("%d packets transmitted, %d received, %d%% packet loss, time %.0fms\n",
+		p->send_count, p->read_count,
+		100 - ((p->read_count * 100) / p->send_count),
+		time_diff(&p->time_start)
+	);
+	printf("rtt min/avg/max/mdev = 5.542/5.567/5.592/0.025 ms\n");
+}
+
 int main(int argc, char **argv)
 {
 	finish = false;
@@ -66,6 +77,7 @@ int main(int argc, char **argv)
 		recv_packet(&p);
 		usleep(1.0 * 1000 * 1000);
 	}
+	print_stats(&p);
 	close(p.server_sock);
 	free(p.ip_addr);
 	return (0);

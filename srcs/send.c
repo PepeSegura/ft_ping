@@ -48,5 +48,6 @@ void send_packet(t_ping *p)
 		free(p->ip_addr);
 		exit(1);
 	}
+	p->send_count++;
 	// printf("Sent ICMP Echo Request to %s (seq=%ld)\n", p->hostname, curr_sequence);
 }

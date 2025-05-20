@@ -6,6 +6,8 @@ CFLAGS       = -Wextra -Wall -Werror
 CFLAGS      += -I inc
 CFLAGS      += -O3
 
+CC = cc
+
 DEBUG        = -g3 -fsanitize=address
 
 CPPFLAGS     = -MMD
@@ -27,7 +29,7 @@ OBJS = $(patsubst srcs/%.c, objs/srcs/%.o, $(FILES))
 DEPS       = $(OBJS:.o=.d)
 
 all: $(NAME)
-	@- sudo setcap cap_net_raw+ep $(NAME)
+	@- sudo setcap cap_net_raw+ep $(NAME) || true
 
 $(NAME): $(OBJS)
 	$(CC) $(DEBUG) $(OBJS) $(LIBS) $(HEADERS) -o $(NAME) && printf "Linking: $(NAME)\n"

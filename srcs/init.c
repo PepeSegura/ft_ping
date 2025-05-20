@@ -41,6 +41,7 @@ static char	*resolve_hostname(const char *hostname)
 void create_server_socket(t_ping *ping)
 {
     int server_fd = INVALID_FD;
+    int socket_flags = 0;
 
     server_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if (server_fd != INVALID_FD)
@@ -58,9 +59,9 @@ void create_server_socket(t_ping *ping)
     exit(EXIT_FAILURE);
 
     set_socket_flags:
-        int flags = fcntl(server_fd, F_GETFL, 0);
+        socket_flags = fcntl(server_fd, F_GETFL, 0);
 
-        fcntl(server_fd, F_SETFL, flags & ~O_NONBLOCK); // Disable non-blocking
+        fcntl(server_fd, F_SETFL, socket_flags & ~O_NONBLOCK); // Disable non-blocking
 
         struct timeval tv = {.tv_sec = 2, .tv_usec = 0};
         setsockopt(server_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); // set 2 secs timeout
@@ -73,6 +74,8 @@ void    init_t_ping(t_ping *ping, char **argv)
     ping->ip_addr = resolve_hostname(argv[1]);
 
     create_server_socket(ping);
+
+    gettimeofday(&ping->time_start, NULL);
 
     printf("--------------------------\n");
     printf("Hostname:  %s\n", ping->hostname);

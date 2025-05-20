@@ -36,6 +36,11 @@ typedef struct s_ping {
 	int		server_sock;
 
     int     sequence;
+	int		send_count;
+	int		read_count;
+
+	struct timeval time_start;
+	struct timeval time_last;
 }	t_ping;
 
 typedef struct s_payload{
