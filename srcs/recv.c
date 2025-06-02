@@ -51,6 +51,10 @@ void recv_packet(t_ping *p)
 			response_icmp = (t_icmphdr *)(response + (ip->ihl * 4));
 		}
 
+		if (response_icmp->type == ICMP_TIME_EXCEEDED) {
+			// Print debug info when verbose mode is on
+			break ;
+		}
 		if (response_icmp->type != ICMP_ECHOREPLY) continue ;
 
 		if (p->socket_type == TYPE_RAW && response_icmp->un.echo.id != htons(getpid()))
@@ -70,6 +74,8 @@ void recv_packet(t_ping *p)
 		
 		mean_and_stddev(p, rtt_ms);
 
+		if (p->quiet_mode == true) break;
+
 		printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
 			inet_ntoa(src_addr.sin_addr),
 			ntohs(response_icmp->un.echo.sequence),
@@ -78,5 +84,4 @@ void recv_packet(t_ping *p)
 		);
 		break ;
 	}
-	
 }

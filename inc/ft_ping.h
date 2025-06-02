@@ -5,6 +5,7 @@
 
 # include <math.h>
 # include <signal.h>
+# include <stdbool.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -44,19 +45,30 @@ typedef struct s_rtt_stats {
 } t_rtt_stats;
 
 typedef struct s_ping {
-	char		*hostname;
-	char		*ip_addr;
-	int			socket_type;
-	int			server_sock;
+	t_flag_parser	*flags;
 
-    int     	sequence;
-	int			send_count;
-	int			read_count;
+	bool			quiet_mode;
+	bool			verbose_mode;
+	int				total_runtime;
 
-	t_rtt_stats	rtt_s;
+	char			*hostname;
+	char			*ip_addr;
+	int				socket_type;
+	int				server_sock;
 
-	struct timeval time_start;
-	struct timeval time_last;
+    int     		sequence;
+	int				custom_ttl;
+
+	int				send_count;
+	int				send_limit;
+	float			send_interval;
+
+	int				read_count;
+
+	t_rtt_stats		rtt_s;
+
+	struct timeval	time_start;
+	struct timeval	time_last;
 }	t_ping;
 
 typedef struct s_payload{
@@ -66,22 +78,22 @@ typedef struct s_payload{
 } t_payload;
 
 typedef struct s_packet {
-	struct icmphdr hdr;
-	t_payload payload;
+	struct icmphdr	hdr;
+	t_payload		payload;
 }   t_packet;
 
 typedef struct icmphdr t_icmphdr;
 typedef uint8_t byte;
 
 /* init.c */
-void        init_t_ping(t_ping *ping, char **argv);
+void		init_t_ping(t_ping *ping, char *host, t_flag_parser *flags);
 
 /* tools.c */
-uint16_t    checksum(void *buffer, size_t len);
-double      time_diff(struct timeval *prev);
+uint16_t	checksum(void *buffer, size_t len);
+double		time_diff(struct timeval *prev);
 
 /* send.c */
-void send_packet(t_ping *ping);
-void recv_packet(t_ping *ping);
+void		send_packet(t_ping *ping);
+void		recv_packet(t_ping *ping);
 
 #endif

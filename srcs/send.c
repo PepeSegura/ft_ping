@@ -13,7 +13,6 @@ void send_packet(t_ping *p)
 	pkt.hdr.un.echo.sequence = htons(curr_sequence);
 
 	gettimeofday(&pkt.payload.timestamp, NULL);
-	printf("SIZEOF PAYLOAD DATA %ld\n", sizeof(pkt.payload.data));
 	memset(pkt.payload.data, 'A', sizeof(pkt.payload.data));
 
 	pkt.hdr.checksum = 0;
@@ -23,6 +22,17 @@ void send_packet(t_ping *p)
 		.sin_family		 	= AF_INET,
 		.sin_addr.s_addr	= inet_addr(p->ip_addr),
 	};
+
+	if (p->custom_ttl != -1)
+	{
+		if (setsockopt(p->server_sock, IPPROTO_IP, IP_TTL, &p->custom_ttl, sizeof(p->custom_ttl)) < 0)
+		{
+			perror("setsockopt TTL failed");
+			close(p->server_sock);
+			free(p->ip_addr);
+			exit(1);
+		}
+	}
 
 	int ret_send = sendto(
 		p->server_sock, &pkt, sizeof(pkt), 0,

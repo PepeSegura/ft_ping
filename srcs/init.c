@@ -6,7 +6,7 @@ static char	*resolve_hostname(const char *hostname)
 	char ip_str[INET6_ADDRSTRLEN];
 
 	memset(&in_info, 0, sizeof(in_info));
-	in_info.ai_family = AF_UNSPEC;
+	in_info.ai_family = AF_INET;
 	in_info.ai_socktype = SOCK_RAW;
 
 	int ret;
@@ -68,10 +68,48 @@ void create_server_socket(t_ping *ping)
     ping->server_sock = server_fd;
 }
 
-void    init_t_ping(t_ping *ping, char **argv)
+void    check_flags(t_ping *ping)
 {
-    ping->hostname = argv[1];
-    ping->ip_addr = resolve_hostname(argv[1]);
+	int	pos_flag;
+
+	if ((pos_flag = check_flag(ping->flags, '?', "help")) != -1) {
+    	printf("%s\n", HELP);
+		cleanup_parser(ping->flags);
+		exit(EXIT_SUCCESS);
+    } if ((pos_flag = check_flag(ping->flags, 'v', "verbose"))     != -1) {
+        ping->verbose_mode = true;
+    } if ((pos_flag = check_flag(ping->flags, 'c', "count"))       != -1) {
+        ping->send_limit = atoi(ping->flags->flags[pos_flag].args[0]);
+    } if ((pos_flag = check_flag(ping->flags, 'i', "interval"))    != -1) {
+        ping->send_interval = atof(ping->flags->flags[pos_flag].args[0]);
+    } if ((pos_flag = check_flag(ping->flags, 0, "ttl"))           != -1) {
+        ping->custom_ttl = atoi(ping->flags->flags[pos_flag].args[0]);
+    } if ((pos_flag = check_flag(ping->flags, 'w', "timeout"))     != -1) {
+        ping->total_runtime = atoi(ping->flags->flags[pos_flag].args[0]);
+    } if ((pos_flag = check_flag(ping->flags, 'q', "quiet"))       != -1) {
+        ping->quiet_mode = true;
+    }
+
+    if (ping->flags->extra_args_count < 1)
+    {
+		dprintf(2, "Usage: %s <destination IP>\n", ping->flags->argv[0]);
+        cleanup_parser(ping->flags);
+		exit(EXIT_FAILURE);
+    }
+}
+
+void    init_t_ping(t_ping *ping, char *host, t_flag_parser *flags)
+{
+    ping->custom_ttl = -1;
+    ping->send_limit = INT32_MAX;
+    ping->total_runtime = INT32_MAX;
+    ping->send_interval = 1.0;
+
+    ping->flags = flags;
+    check_flags(ping);
+
+    ping->hostname = host;
+    ping->ip_addr = resolve_hostname(host);
 
     create_server_socket(ping);
 
@@ -85,4 +123,5 @@ void    init_t_ping(t_ping *ping, char **argv)
     printf("Sock_type: [%s]\n", (ping->socket_type == TYPE_RAW) ? "RAW" : "DGRAM");
     printf("Sock_fd:   %d\n", ping->server_sock);
     printf("--------------------------\n");
+    printf("PING %s (%s): 56 data bytes\n", ping->hostname, ping->ip_addr);
 }

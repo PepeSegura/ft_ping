@@ -38,7 +38,7 @@ $(NAME): $(OBJS)
 
 objs/srcs/%.o: ./srcs/%.c
 	@mkdir -p $(dir $@)
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $< $(HEADERS) && printf "Compiling: $(notdir $<)\n"
+	@$(CC) $(DEBUG) $(CPPFLAGS) $(CFLAGS) -o $@ -c $< $(HEADERS) && printf "Compiling: $(notdir $<)\n"
 
 clean:
 	@rm -rf objs
