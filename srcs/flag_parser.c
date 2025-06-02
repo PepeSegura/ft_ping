@@ -194,3 +194,34 @@ void	cleanup_parser(t_flag_parser *parser)
 			free(parser->flags[i].args);
 	}
 }
+
+int	check_short_flag(t_flag_parser *parser, char short_flag)
+{
+	for (size_t i = 0; i < parser->count; i++)
+	{
+		if (parser->flags[i].short_name == short_flag && parser->flags[i].present)
+			return (i);
+	}
+	return (-1);
+}
+
+int	check_long_flag(t_flag_parser *parser, char *long_flag)
+{
+	for (size_t i = 0; i < parser->count; i++)
+	{
+		if (strcmp(parser->flags[i].long_name, long_flag) == 0 && parser->flags[i].present)
+			return (i);
+	}
+	return (-1);
+}
+
+int check_flag(t_flag_parser *parser, char short_flag, char *long_flag)
+{
+	int	flag_pos = -1;
+
+	if (short_flag != 0)
+		flag_pos = check_short_flag(parser, short_flag);
+	if (long_flag != NULL)
+		flag_pos = check_long_flag(parser, long_flag);
+	return (flag_pos);
+}

@@ -1,5 +1,24 @@
 #include "ft_ping.h"
 
+void mean_and_stddev(t_ping *p, double new_value)
+{
+	t_rtt_stats *r = (t_rtt_stats *)&p->rtt_s;
+
+	r->total_count = p->read_count;
+
+	double delta = new_value - r->mean;
+	r->mean += delta / r->total_count;
+
+	double delta2 = new_value - r->mean;
+
+	r->m2 += delta * delta2;
+
+	double variance = 0.0;
+	if (r->total_count > 1)
+		variance = (r->m2 / (r->total_count - 1));
+	r->stddev = sqrt(variance);
+}
+
 void recv_packet(t_ping *p)
 {
 	while (1)
@@ -40,11 +59,18 @@ void recv_packet(t_ping *p)
 			continue ;
 		}
 
+		p->read_count++;
+
 		t_payload *payload = (t_payload *)(response_icmp + 1);
 
 		double rtt_ms = time_diff(&payload->timestamp);
 
-		printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.2fms\n",
+		if (rtt_ms > p->rtt_s.max) p->rtt_s.max = rtt_ms;
+		if (rtt_ms < p->rtt_s.min) p->rtt_s.min = rtt_ms;
+		
+		mean_and_stddev(p, rtt_ms);
+
+		printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
 			inet_ntoa(src_addr.sin_addr),
 			ntohs(response_icmp->un.echo.sequence),
 			ttl,
@@ -52,5 +78,5 @@ void recv_packet(t_ping *p)
 		);
 		break ;
 	}
-	p->read_count++;
+	
 }

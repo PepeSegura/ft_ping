@@ -76,6 +76,8 @@ void    init_t_ping(t_ping *ping, char **argv)
     create_server_socket(ping);
 
     gettimeofday(&ping->time_start, NULL);
+    ping->rtt_s.max = INT64_MIN;
+    ping->rtt_s.min = INT64_MAX;
 
     printf("--------------------------\n");
     printf("Hostname:  %s\n", ping->hostname);

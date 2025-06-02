@@ -6,6 +6,8 @@ CFLAGS       = -Wextra -Wall -Werror
 CFLAGS      += -I inc
 CFLAGS      += -O3
 
+LIBS		= -lm
+
 CC = cc
 
 DEBUG        = -g3 -fsanitize=address

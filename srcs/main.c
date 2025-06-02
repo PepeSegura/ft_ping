@@ -1,37 +1,5 @@
 #include "ft_ping.h"
 
-/* BONUS FLAGS */
-// INIT_FLAG('f',  "flood",            NO_ARG),
-// INIT_FLAG('l',  "preload",          NEED_ARG),
-// INIT_FLAG('n',  "numeric",          NO_ARG),
-// INIT_FLAG('w',  "timeout",          NEED_ARG),
-// INIT_FLAG('W',  "linger",           NEED_ARG),
-// INIT_FLAG('p',  "pattern",          NEED_ARG),
-// INIT_FLAG('r',  "ignore-routing",   NO_ARG),
-// INIT_FLAG('s',  "size",             NEED_ARG),
-// INIT_FLAG('T',  "tos",              NEED_ARG),
-// INIT_FLAG(0,    "ttl",              NEED_ARG),
-// INIT_FLAG(0,    "ip-timestamp",     NEED_ARG),
-
-// int main(int argc, char **argv)
-// {
-//     t_flag flags[] = {
-//         /* Mandatory */
-//         INIT_FLAG('v',  "verbose",          NO_ARG),
-//         INIT_FLAG('?',  "help",             NO_ARG),
-//         /* Bonus */
-//     };
-
-//     t_flag_parser flag_parser = parser_init(flags, FLAGS_COUNT(flags), argc, argv);
-
-// 	parse(&flag_parser);
-
-// 	print_parsed_flags(&flag_parser);
-
-// 	cleanup_parser(&flag_parser);
-//     return (0);
-// }
-
 bool finish;
 
 void sig_handler(int signum)
@@ -44,13 +12,14 @@ void sig_handler(int signum)
 
 void print_stats(t_ping *p)
 {
-	printf("\n--- %s ping statistics ---\n", p->hostname);
-	printf("%d packets transmitted, %d received, %d%% packet loss, time %.0fms\n",
+	printf("--- %s ping statistics ---\n", p->hostname);
+	printf("%d packets transmitted, %d packets received, %d%% packet loss\n",
 		p->send_count, p->read_count,
-		100 - ((p->read_count * 100) / p->send_count),
-		time_diff(&p->time_start)
+		100 - ((p->read_count * 100) / p->send_count)
 	);
-	printf("rtt min/avg/max/mdev = 5.542/5.567/5.592/0.025 ms\n");
+	printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+		p->rtt_s.min, p->rtt_s.mean, p->rtt_s.max, p->rtt_s.stddev
+	);
 }
 
 int main(int argc, char **argv)
@@ -59,7 +28,7 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, sig_handler);
 
-	if (argc != 2)
+	if (argc < 2)
 	{
 		dprintf(2, "Usage: %s <destination IP>\n", argv[0]);
 		return (1);
@@ -67,16 +36,29 @@ int main(int argc, char **argv)
 
 	t_flag flags[] = {
 		/* Mandatory */
-		INIT_FLAG('v',  "verbose",          NO_ARG),
-		INIT_FLAG('?',  "help",             NO_ARG),
+		INIT_FLAG('v',	"verbose",	NO_ARG),
+		INIT_FLAG('?',	"help",		NO_ARG),
 		/* Bonus */
+		INIT_FLAG('c',	"count",	NEED_ARG),	// number of packets to send
+		INIT_FLAG('i',	"interval",	NEED_ARG),	// interval between sendind packets (in seconds)
+		INIT_FLAG(0,	"ttl",		NEED_ARG),	// secify N as time-to-live
+		INIT_FLAG('w',	"timeout",	NEED_ARG),	// stop after N seconds
+		INIT_FLAG('q',	"quiet",	NO_ARG	),	// quiet output
 	};
 
 	t_flag_parser flag_parser = parser_init(flags, FLAGS_COUNT(flags), argc, argv);
 
 	parse(&flag_parser);
-
 	print_parsed_flags(&flag_parser);
+
+	int	pos_flag;
+
+	if ((pos_flag = check_flag(&flag_parser, '?', "help")) != -1)
+	{
+		printf("%s\n", HELP);
+		cleanup_parser(&flag_parser);
+		exit(EXIT_SUCCESS);
+	}
 
 	cleanup_parser(&flag_parser);
 	

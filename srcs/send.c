@@ -1,17 +1,5 @@
 #include "ft_ping.h"
 
-// typedef struct s_payload{
-// 	uint16_t sequence;
-// 	struct timeval timestamp;
-// 	char data[48];
-// } t_payload;
-
-// typedef struct s_packet {
-// 	struct icmphdr hdr;
-// 	t_payload payload;
-// }   t_packet;
-
-
 void send_packet(t_ping *p)
 {
 	t_packet	pkt;
@@ -19,13 +7,13 @@ void send_packet(t_ping *p)
 	
 	memset(&pkt, 0, sizeof(t_packet));
 	
-	// printf("SETTING [%s] PACKET...\n", (p->socket_type == TYPE_RAW) ? "RAW" : "DGRAM");
 	pkt.hdr.type = ICMP_ECHO; // 8 = echo request - 0 = echo reply
 	pkt.hdr.code = 0;
 	pkt.hdr.un.echo.id = htons(getpid());
 	pkt.hdr.un.echo.sequence = htons(curr_sequence);
 
 	gettimeofday(&pkt.payload.timestamp, NULL);
+	printf("SIZEOF PAYLOAD DATA %ld\n", sizeof(pkt.payload.data));
 	memset(pkt.payload.data, 'A', sizeof(pkt.payload.data));
 
 	pkt.hdr.checksum = 0;
@@ -49,5 +37,4 @@ void send_packet(t_ping *p)
 		exit(1);
 	}
 	p->send_count++;
-	// printf("Sent ICMP Echo Request to %s (seq=%ld)\n", p->hostname, curr_sequence);
 }
