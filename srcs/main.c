@@ -59,12 +59,26 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, sig_handler);
 
-	(void)argc, (void)argv;
 	if (argc != 2)
 	{
 		dprintf(2, "Usage: %s <destination IP>\n", argv[0]);
 		return (1);
 	}
+
+	t_flag flags[] = {
+		/* Mandatory */
+		INIT_FLAG('v',  "verbose",          NO_ARG),
+		INIT_FLAG('?',  "help",             NO_ARG),
+		/* Bonus */
+	};
+
+	t_flag_parser flag_parser = parser_init(flags, FLAGS_COUNT(flags), argc, argv);
+
+	parse(&flag_parser);
+
+	print_parsed_flags(&flag_parser);
+
+	cleanup_parser(&flag_parser);
 	
 	t_ping p;
 
