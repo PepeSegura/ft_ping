@@ -59,7 +59,8 @@ int main(int argc, char **argv)
 		{
 			send_packet(&p);
 			recv_packet(&p);
-			usleep(p.send_interval * 1000 * 1000);
+			if (finish == false && p.send_count < p.send_limit)
+				usleep(p.send_interval * 1000 * 1000);
 		}
 
 		print_stats(&p);
@@ -70,3 +71,6 @@ int main(int argc, char **argv)
 
 	return (0);
 }
+/*
+ 4  5  00 0054 ceb2   2 0000  01  01 5062 172.17.0.2  13.248.160.137
+*/

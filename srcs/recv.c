@@ -19,6 +19,30 @@ void mean_and_stddev(t_ping *p, double new_value)
 	r->stddev = sqrt(variance);
 }
 
+#include <netinet/ip.h>
+
+void dump_ip_header(struct iphdr *ip) {
+    unsigned char *bytes = (unsigned char *)ip;
+
+	printf("IP Hdr Dump:\n ");
+    // Print hex dump (like "4500 0054 ...")
+    for (size_t i=0; i<sizeof(struct iphdr); i+=4)
+	{
+        printf("%02x%02x %02x%02x ", bytes[i], bytes[i+1], bytes[i+2], bytes[i+3]);
+    }
+
+    // Human-readable format
+	printf("\n");
+    printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst     Data\n");
+    printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x\n",
+           ip->version, ip->ihl, ip->tos, 
+           ntohs(ip->tot_len), ntohs(ip->id),
+           ntohs(ip->frag_off) >> 13, 
+           ntohs(ip->frag_off) & 0x1FFF,
+           ip->ttl, ip->protocol, ntohs(ip->check));
+	printf("ICMP: type 8, code 0, size 64, id 0x5940, seq 0x0000\n");
+}
+
 void recv_packet(t_ping *p)
 {
 	while (1)
@@ -62,11 +86,7 @@ void recv_packet(t_ping *p)
 			free(dns_lookup_str);
 			if (p->verbose_mode == true)
 			{
-				printf("IP Hdr Dump:\n");
-				printf(" 4500 0054 c9c6 4000 0101 9474 ac11 0002 4cdf 227c\n");
-
-				printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst     Data\n");
-				printf(" 4  5  00 0054 c9c6   2 0000  01  01 9474 172.17.0.2  76.223.34.124\n");
+				dump_ip_header(original_ip);
 			}
 			// printf("  Original destination: %s\n", inet_ntoa(*(struct in_addr *)&original_ip->daddr));
 			// printf("  Original ICMP type: %d\n", original_icmp->type);
