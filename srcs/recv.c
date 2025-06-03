@@ -51,9 +51,30 @@ void recv_packet(t_ping *p)
 			response_icmp = (t_icmphdr *)(response + (ip->ihl * 4));
 		}
 
-		if (response_icmp->type == ICMP_TIME_EXCEEDED) {
-			// Print debug info when verbose mode is on
-			break ;
+		if (response_icmp->type == ICMP_TIME_EXCEEDED)
+		{
+			struct iphdr	*original_ip = (struct iphdr *)(response_icmp + 1); // Pointer to original IP header
+	
+			char *ip_dest_str = inet_ntoa(src_addr.sin_addr);
+			char *dns_lookup_str = reverse_dns_lookup(ip_dest_str);
+
+			printf("92 bytes from: %s (%s): Time to live exceeded\n", dns_lookup_str, ip_dest_str);
+			free(dns_lookup_str);
+			if (p->verbose_mode == true)
+			{
+				printf("IP Hdr Dump:\n");
+				printf(" 4500 0054 c9c6 4000 0101 9474 ac11 0002 4cdf 227c\n");
+
+				printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst     Data\n");
+				printf(" 4  5  00 0054 c9c6   2 0000  01  01 9474 172.17.0.2  76.223.34.124\n");
+			}
+			// printf("  Original destination: %s\n", inet_ntoa(*(struct in_addr *)&original_ip->daddr));
+			// printf("  Original ICMP type: %d\n", original_icmp->type);
+			// printf("  Original ICMP code: %d\n", original_icmp->code);
+			// printf("  Original ICMP ID: %d\n", ntohs(original_icmp->un.echo.id));
+			// printf("  Original ICMP seq: %d\n", ntohs(original_icmp->un.echo.sequence));
+
+		    break;
 		}
 		if (response_icmp->type != ICMP_ECHOREPLY) continue ;
 
@@ -76,7 +97,8 @@ void recv_packet(t_ping *p)
 
 		if (p->quiet_mode == true) break;
 
-		printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+			ret_recv,
 			inet_ntoa(src_addr.sin_addr),
 			ntohs(response_icmp->un.echo.sequence),
 			ttl,

@@ -30,3 +30,24 @@ double time_diff(struct timeval *prev)
 	gettimeofday(&now, NULL);
 	return (((now.tv_sec - prev->tv_sec) * 1000.0) + (now.tv_usec - prev->tv_usec) / 1000.0);
 }
+
+char *reverse_dns_lookup(char *ip_address_str)
+{
+	struct sockaddr_in sa;
+    char host[NI_MAXHOST];
+
+	memset(&sa, 0, sizeof(struct sockaddr_in));
+    sa.sin_family = AF_INET;
+    if (inet_pton(AF_INET, ip_address_str, &sa.sin_addr) != 1) {
+        perror("inet_pton failed");
+        return NULL;
+    }
+
+	int res = getnameinfo((struct sockaddr *)&sa, sizeof(sa), host, sizeof(host), NULL, 0, NI_NAMEREQD);
+    if (res != 0)
+	{
+        dprintf(2, "getnameinfo failed: %s\n", gai_strerror(res));
+        return NULL;
+    }
+	return (strdup(host));
+}

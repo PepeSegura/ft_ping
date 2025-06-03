@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	t_flag_parser flags = parser_init(available_flags, FLAGS_COUNT(available_flags), argc, argv);
 
 	parse(&flags);
-	print_parsed_flags(&flags);
+	// print_parsed_flags(&flags);
 
 	t_ping p;
 

@@ -91,6 +91,7 @@ void		init_t_ping(t_ping *ping, char *host, t_flag_parser *flags);
 /* tools.c */
 uint16_t	checksum(void *buffer, size_t len);
 double		time_diff(struct timeval *prev);
+char		*reverse_dns_lookup(char *ip_address_str);
 
 /* send.c */
 void		send_packet(t_ping *ping);
