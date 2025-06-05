@@ -33,6 +33,9 @@ enum sock_type {
     TYPE_DGRAM,
 };
 
+# define DEFAULT_READ 64
+# define DEFAULT_ERR 92
+
 typedef struct s_rtt_stats {
 	int		total_count;
 
@@ -71,10 +74,13 @@ typedef struct s_ping {
 	struct timeval	time_last;
 }	t_ping;
 
+# define PING_PKT_SIZE 64
+
+
 typedef struct s_payload{
 	uint16_t		sequence;
 	struct timeval	timestamp;
-	char			data[64];
+	char			data[PING_PKT_SIZE - sizeof(uint16_t) - sizeof(struct timeval)];
 } t_payload;
 
 typedef struct s_packet {

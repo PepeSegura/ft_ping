@@ -114,14 +114,13 @@ void    init_t_ping(t_ping *ping, char *host, t_flag_parser *flags)
     create_server_socket(ping);
 
     gettimeofday(&ping->time_start, NULL);
-    ping->rtt_s.max = INT64_MIN;
-    ping->rtt_s.min = INT64_MAX;
+    ping->rtt_s.max = (double)INT64_MIN;
+    ping->rtt_s.min = (double)INT64_MAX;
 
-    // printf("--------------------------\n");
-    // printf("Hostname:  %s\n", ping->hostname);
-    // printf("IP_Dest:   %s\n", ping->ip_addr);
-    // printf("Sock_type: [%s]\n", (ping->socket_type == TYPE_RAW) ? "RAW" : "DGRAM");
-    // printf("Sock_fd:   %d\n", ping->server_sock);
-    // printf("--------------------------\n");
-    printf("PING %s (%s): 56 data bytes\n", ping->hostname, ping->ip_addr);
+    if (ping->verbose_mode == false) {
+        printf("PING %s (%s): 56 data bytes\n", ping->hostname, ping->ip_addr);
+    } else {
+        size_t pid = getpid();
+        printf("PING %s (%s): 56 data bytes, id %p = %ld\n", ping->hostname, ping->ip_addr, (void *)pid, pid);
+    }
 }

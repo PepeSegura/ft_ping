@@ -21,26 +21,29 @@ void mean_and_stddev(t_ping *p, double new_value)
 
 #include <netinet/ip.h>
 
-void dump_ip_header(struct iphdr *ip) {
+void dump_ip_header(struct iphdr *ip)
+{
     unsigned char *bytes = (unsigned char *)ip;
 
+	t_icmphdr	*response_icmp = (t_icmphdr	*)ip - 1;
+
 	printf("IP Hdr Dump:\n ");
-    // Print hex dump (like "4500 0054 ...")
-    for (size_t i=0; i<sizeof(struct iphdr); i+=4)
+    for (size_t i = 0; i < sizeof(struct iphdr); i+=4)
 	{
         printf("%02x%02x %02x%02x ", bytes[i], bytes[i+1], bytes[i+2], bytes[i+3]);
     }
 
-    // Human-readable format
 	printf("\n");
     printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst     Data\n");
     printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x\n",
-           ip->version, ip->ihl, ip->tos, 
-           ntohs(ip->tot_len), ntohs(ip->id),
+           ip->version, ip->ihl, ip->tos, ntohs(ip->tot_len), ntohs(ip->id),
            ntohs(ip->frag_off) >> 13, 
            ntohs(ip->frag_off) & 0x1FFF,
            ip->ttl, ip->protocol, ntohs(ip->check));
-	printf("ICMP: type 8, code 0, size 64, id 0x5940, seq 0x0000\n");
+	size_t seq_hex = response_icmp->un.echo.sequence;
+	printf("ICMP: type %d, code %d, size %d, id %d, seq %p\n",
+		response_icmp->type, response_icmp->code, ip->tot_len, response_icmp->un.echo.id, (void *)seq_hex 
+	);
 }
 
 void recv_packet(t_ping *p)
@@ -65,35 +68,29 @@ void recv_packet(t_ping *p)
 			exit(1);
 		}
 
-		t_icmphdr	*response_icmp = (t_icmphdr *)response;
+		t_icmphdr		*response_icmp = (t_icmphdr *)response;
+		struct iphdr	*ip = (struct iphdr *)response;
+	
 		uint8_t		ttl = 0;
 
 		if (p->socket_type == TYPE_RAW)
 		{
-			struct iphdr *ip = (struct iphdr *)response;
 			ttl = ip->ttl;
-			response_icmp = (t_icmphdr *)(response + (ip->ihl * 4));
+			printf("ttl %d\n", ttl);
+			response_icmp = (t_icmphdr *)(response + (ip->ihl << 2));
 		}
 
 		if (response_icmp->type == ICMP_TIME_EXCEEDED)
 		{
-			struct iphdr	*original_ip = (struct iphdr *)(response_icmp + 1); // Pointer to original IP header
+			ip = (struct iphdr *)(response_icmp + 1);
 	
 			char *ip_dest_str = inet_ntoa(src_addr.sin_addr);
 			char *dns_lookup_str = reverse_dns_lookup(ip_dest_str);
-
-			printf("92 bytes from: %s (%s): Time to live exceeded\n", dns_lookup_str, ip_dest_str);
+	
+			printf("%d bytes from: %s (%s): Time to live exceeded\n", DEFAULT_ERR, dns_lookup_str, ip_dest_str);
 			free(dns_lookup_str);
 			if (p->verbose_mode == true)
-			{
-				dump_ip_header(original_ip);
-			}
-			// printf("  Original destination: %s\n", inet_ntoa(*(struct in_addr *)&original_ip->daddr));
-			// printf("  Original ICMP type: %d\n", original_icmp->type);
-			// printf("  Original ICMP code: %d\n", original_icmp->code);
-			// printf("  Original ICMP ID: %d\n", ntohs(original_icmp->un.echo.id));
-			// printf("  Original ICMP seq: %d\n", ntohs(original_icmp->un.echo.sequence));
-
+				dump_ip_header(ip);
 		    break;
 		}
 		if (response_icmp->type != ICMP_ECHOREPLY) continue ;
@@ -118,7 +115,7 @@ void recv_packet(t_ping *p)
 		if (p->quiet_mode == true) break;
 
 		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-			ret_recv,
+			DEFAULT_READ,
 			inet_ntoa(src_addr.sin_addr),
 			ntohs(response_icmp->un.echo.sequence),
 			ttl,
