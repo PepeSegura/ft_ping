@@ -8,7 +8,7 @@ CFLAGS      += -O3
 
 LIBS		= -lm
 
-CC = cc
+CC = gcc
 
 DEBUG        = -g3 -fsanitize=address
 
