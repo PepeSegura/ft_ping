@@ -23,27 +23,37 @@ void mean_and_stddev(t_ping *p, double new_value)
 
 void dump_ip_header(struct iphdr *ip)
 {
-    unsigned char *bytes = (unsigned char *)ip;
+	unsigned char *bytes = (unsigned char *)ip;
 
 	t_icmphdr	*response_icmp = (t_icmphdr	*)ip - 1;
 
 	printf("IP Hdr Dump:\n ");
-    for (size_t i = 0; i < sizeof(struct iphdr); i+=4)
+	for (size_t i = 0; i < sizeof(struct iphdr); i+=4)
 	{
-        printf("%02x%02x %02x%02x ", bytes[i], bytes[i+1], bytes[i+2], bytes[i+3]);
-    }
+		printf("%02x%02x %02x%02x ", bytes[i], bytes[i+1], bytes[i+2], bytes[i+3]);
+	}
+
+
+	char ip_src[INET_ADDRSTRLEN];
+	char ip_dst[INET_ADDRSTRLEN];
+
+	inet_ntop(AF_INET, &(ip->saddr), ip_src, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &(ip->daddr), ip_dst, INET_ADDRSTRLEN);
 
 	printf("\n");
-    printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst     Data\n");
-    printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x\n",
-           ip->version, ip->ihl, ip->tos, ntohs(ip->tot_len), ntohs(ip->id),
-           ntohs(ip->frag_off) >> 13, 
-           ntohs(ip->frag_off) & 0x1FFF,
-           ip->ttl, ip->protocol, ntohs(ip->check));
-	size_t seq_hex = response_icmp->un.echo.sequence;
-	printf("ICMP: type %d, code %d, size %d, id %d, seq %p\n",
-		response_icmp->type, response_icmp->code, ip->tot_len, response_icmp->un.echo.id, (void *)seq_hex 
+	printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst     Data\n");
+	printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x %s %s\n",
+		   ip->version, ip->ihl, ip->tos, ntohs(ip->tot_len), ntohs(ip->id),
+		   ntohs(ip->frag_off) >> 13, 
+		   ntohs(ip->frag_off) & 0x1FFF,
+		   ip->ttl, ip->protocol, ntohs(ip->check),
+		   ip_src, ip_dst
 	);
+	static int8_t seq_it;
+	printf("ICMP: type %d, code %d, size %d, id 0x%x, seq 0x%x\n",
+		response_icmp->type, response_icmp->code, ip->tot_len, ntohs(ip->id), (int32_t)seq_it 
+	);
+	seq_it++;
 }
 
 void recv_packet(t_ping *p)
@@ -63,9 +73,10 @@ void recv_packet(t_ping *p)
 		{
 			if (errno != EINTR)
 				perror("recvfrom ret < 0");
-			close(p->server_sock);
-			free(p->ip_addr);
-			exit(1);
+			break ;
+			// close(p->server_sock);
+			// free(p->ip_addr);
+			// exit(1);
 		}
 
 		t_icmphdr		*response_icmp = (t_icmphdr *)response;
@@ -76,7 +87,6 @@ void recv_packet(t_ping *p)
 		if (p->socket_type == TYPE_RAW)
 		{
 			ttl = ip->ttl;
-			printf("ttl %d\n", ttl);
 			response_icmp = (t_icmphdr *)(response + (ip->ihl << 2));
 		}
 
@@ -91,7 +101,7 @@ void recv_packet(t_ping *p)
 			free(dns_lookup_str);
 			if (p->verbose_mode == true)
 				dump_ip_header(ip);
-		    break;
+			break;
 		}
 		if (response_icmp->type != ICMP_ECHOREPLY) continue ;
 

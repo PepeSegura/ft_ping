@@ -51,3 +51,6 @@ re: fclean all
 -include $(DEPS)
 
 .PHONY: all clean fclean re
+
+# how to copy from host to VM
+# rsync -avz -e "ssh -p 4040" --delete ~/ping/ user@localhost:~/ping/

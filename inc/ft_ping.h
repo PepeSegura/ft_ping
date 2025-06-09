@@ -29,8 +29,8 @@
 # include "help.h"
 
 enum sock_type {
-    TYPE_RAW,
-    TYPE_DGRAM,
+	TYPE_RAW,
+	TYPE_DGRAM,
 };
 
 # define DEFAULT_READ 64
@@ -52,18 +52,18 @@ typedef struct s_ping {
 
 	bool			quiet_mode;
 	bool			verbose_mode;
-	int				total_runtime;
+	int64_t			total_runtime;
 
 	char			*hostname;
 	char			*ip_addr;
 	int				socket_type;
 	int				server_sock;
 
-    int     		sequence;
+	int     		sequence;
 	int				custom_ttl;
 
-	int				send_count;
-	int				send_limit;
+	uint32_t		send_count;
+	uint32_t		send_limit;
 	float			send_interval;
 
 	int				read_count;
@@ -72,10 +72,20 @@ typedef struct s_ping {
 
 	struct timeval	time_start;
 	struct timeval	time_last;
+
+	int64_t			ping_start;
+	int64_t			time_end;
 }	t_ping;
 
-# define PING_PKT_SIZE 64
 
+extern bool finish;
+
+# define PING_PKT_SIZE 64
+# define MIN_INTERVAL 0.2
+# define MIN_TTL 1
+# define MAX_TTL 255
+# define MIN_RUNTIME 0
+# define MAX_RUNTIME INT32_MAX
 
 typedef struct s_payload{
 	uint16_t		sequence;
@@ -97,6 +107,7 @@ void		init_t_ping(t_ping *ping, char *host, t_flag_parser *flags);
 /* tools.c */
 uint16_t	checksum(void *buffer, size_t len);
 double		time_diff(struct timeval *prev);
+int64_t		get_time_in_ms(void);
 char		*reverse_dns_lookup(char *ip_address_str);
 
 /* send.c */

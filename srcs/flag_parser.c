@@ -41,7 +41,8 @@ int	parse_short_flag_arg(t_flag_parser *parser, t_flag *flag, char *short_flags,
 
 	if (parser->pos + 1 >= parser->argc || parser->argv[parser->pos + 1][0] == '-')
 	{
-		dprintf(2, "Error: Flag -%c requires an argument.\n", flag->short_name);
+		dprintf(2, "%s: option requires an argument -- '%c'\n", parser->argv[0], flag->short_name);
+		dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", parser->argv[0], parser->argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	parser->pos++;
@@ -74,12 +75,14 @@ int	parse_long_flag_arg(t_flag_parser *parser, t_flag *flag, char *new_arg)
 	{
 		if (flag->long_name)
 		{
-			dprintf(2, "Error: Flag --%s requires an argument.\n", flag->long_name);
+			dprintf(2, "%s: option '--%s' requires an argument\n", parser->argv[0], flag->long_name);
+			dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", parser->argv[0], parser->argv[0]);
 			exit(EXIT_FAILURE);
 		}
 		if (flag->short_name)
 		{
-			dprintf(2, "Error: Flag -%c requires an argument.\n", flag->short_name);
+			dprintf(2, "%s: option requires an argument -- '%c'\n", parser->argv[0], flag->short_name);
+			dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", parser->argv[0], parser->argv[0]);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -122,7 +125,8 @@ void	parse(t_flag_parser *parser)
 			t_flag *flag = match_long_flag(parser, name);
 			if (!flag)
 			{
-				dprintf(2, "Unknown flag: %s\n", arg);
+				dprintf(2, "%s: invalid option -- '%c'\n", parser->argv[0], flag->short_name);
+				dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", parser->argv[0], parser->argv[0]);
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -134,7 +138,8 @@ void	parse(t_flag_parser *parser)
 				t_flag *flag = match_short_flag(parser, short_flags[i]);
 				if (!flag)
 				{
-					dprintf(2, "Unknown flag: -%c\n", short_flags[i]);
+					dprintf(2, "%s: invalid option -- '%c'\n", parser->argv[0], short_flags[i]);
+					dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", parser->argv[0], parser->argv[0]);
 					exit(EXIT_FAILURE);
 				}
 				if (parse_short_flag_arg(parser, flag, short_flags, i) == NO_ARG)
