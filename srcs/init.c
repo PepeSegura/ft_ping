@@ -30,8 +30,6 @@ static char	*resolve_hostname(const char *hostname)
 	}
 	inet_ntop(result->ai_family, addr, ip_str, sizeof(ip_str));
 
-	// printf("%s (%s):\n", hostname, ip_str);
-
 	freeaddrinfo(result);
 	return (strdup(ip_str));
 }
@@ -55,7 +53,8 @@ void create_server_socket(t_ping *ping)
 		ping->socket_type = TYPE_DGRAM;
 		goto set_socket_flags;
 	}
-	perror("socket");
+	dprintf(2, "%s: network capabilities disabled\n", ping->flags->argv[0]);
+	dprintf(2, "Try 'sudo setcap cap_net_raw+ep %s' or 'sudo %s'\n", ping->flags->argv[0], ping->flags->argv[0]);
 	exit(EXIT_FAILURE);
 
 	set_socket_flags:
