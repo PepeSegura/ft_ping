@@ -12,7 +12,7 @@ static char	*resolve_hostname(const char *hostname)
 	int ret;
 	if ((ret = getaddrinfo(hostname, NULL, &in_info, &result)) != 0)
 	{
-		dprintf(2, "getaddrinfo: %s\n", gai_strerror(ret));
+		dprintf(2, "./ft_ping: %s: %s\n", hostname, gai_strerror(ret));
 		exit(EXIT_FAILURE);
 	}
 
