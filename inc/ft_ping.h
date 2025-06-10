@@ -98,7 +98,6 @@ typedef struct s_packet {
 	t_payload		payload;
 }   t_packet;
 
-typedef struct icmphdr t_icmphdr;
 typedef uint8_t byte;
 
 /* init.c */

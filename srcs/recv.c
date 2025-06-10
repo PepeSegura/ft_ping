@@ -23,16 +23,15 @@ void mean_and_stddev(t_ping *p, double new_value)
 
 void dump_ip_header(struct iphdr *ip)
 {
-	unsigned char *bytes = (unsigned char *)ip;
+	byte *bytes = (byte *)ip;
 
-	t_icmphdr	*response_icmp = (t_icmphdr	*)ip - 1;
+	struct icmphdr	*response_icmp = (struct icmphdr *)ip;
 
 	printf("IP Hdr Dump:\n ");
 	for (size_t i = 0; i < sizeof(struct iphdr); i+=4)
 	{
 		printf("%02x%02x %02x%02x ", bytes[i], bytes[i+1], bytes[i+2], bytes[i+3]);
 	}
-
 
 	char ip_src[INET_ADDRSTRLEN];
 	char ip_dst[INET_ADDRSTRLEN];
@@ -62,8 +61,8 @@ void recv_packet(t_ping *p)
 	{
 		byte response[1024] = {0};
 
-		struct sockaddr_in src_addr;
-		socklen_t src_len = sizeof(src_addr);
+		struct sockaddr_in	src_addr;
+		socklen_t			src_len = sizeof(src_addr);
 
 		int ret_recv = recvfrom(
 			p->server_sock, response, sizeof(response), 0,
@@ -74,38 +73,37 @@ void recv_packet(t_ping *p)
 			if (errno != EINTR)
 				perror("recvfrom ret < 0");
 			break ;
-			// close(p->server_sock);
-			// free(p->ip_addr);
-			// exit(1);
 		}
 
-		t_icmphdr		*response_icmp = (t_icmphdr *)response;
-		struct iphdr	*ip = (struct iphdr *)response;
+		uint8_t			ttl = 0;
+		struct icmphdr	*icmp_hdr = (struct icmphdr *)response;
+		struct iphdr	*iphdr = (struct iphdr *)response;
 	
-		uint8_t		ttl = 0;
+		int	pkt_size = DEFAULT_READ;
 
 		if (p->socket_type == TYPE_RAW)
 		{
-			ttl = ip->ttl;
-			response_icmp = (t_icmphdr *)(response + (ip->ihl << 2));
+			ttl = iphdr->ttl;
+			icmp_hdr = (struct icmphdr *)(response + (iphdr->ihl << 2));
+			pkt_size = ntohs(iphdr->tot_len) - (iphdr->ihl << 2) - (sizeof(struct icmphdr) << 1);
 		}
 
-		if (response_icmp->type == ICMP_TIME_EXCEEDED)
+		if (icmp_hdr->type == ICMP_TIME_EXCEEDED)
 		{
-			ip = (struct iphdr *)(response_icmp + 1);
-	
 			char *ip_dest_str = inet_ntoa(src_addr.sin_addr);
 			char *dns_lookup_str = reverse_dns_lookup(ip_dest_str);
+
+			if (pkt_size < 32) pkt_size = 32;
 	
-			printf("%d bytes from: %s (%s): Time to live exceeded\n", DEFAULT_ERR, dns_lookup_str, ip_dest_str);
+			printf("%d bytes from: %s (%s): Time to live exceeded\n", pkt_size, dns_lookup_str, ip_dest_str);
 			free(dns_lookup_str);
 			if (p->verbose_mode == true)
-				dump_ip_header(ip);
+				dump_ip_header(iphdr);
 			break;
 		}
-		if (response_icmp->type != ICMP_ECHOREPLY) continue ;
+		if (icmp_hdr->type != ICMP_ECHOREPLY) continue ;
 
-		if (p->socket_type == TYPE_RAW && response_icmp->un.echo.id != htons(getpid()))
+		if (p->socket_type == TYPE_RAW && icmp_hdr->un.echo.id != htons(getpid()))
 		{
 			dprintf(2, "Invalid ID\n");
 			continue ;
@@ -113,7 +111,7 @@ void recv_packet(t_ping *p)
 
 		p->read_count++;
 
-		t_payload *payload = (t_payload *)(response_icmp + 1);
+		t_payload *payload = (t_payload *)(icmp_hdr + 1);
 
 		double rtt_ms = time_diff(&payload->timestamp);
 
@@ -125,9 +123,9 @@ void recv_packet(t_ping *p)
 		if (p->quiet_mode == true) break;
 
 		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-			DEFAULT_READ,
+			pkt_size,
 			inet_ntoa(src_addr.sin_addr),
-			ntohs(response_icmp->un.echo.sequence),
+			ntohs(icmp_hdr->un.echo.sequence),
 			ttl,
 			rtt_ms
 		);

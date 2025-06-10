@@ -53,9 +53,6 @@ char *reverse_dns_lookup(char *ip_address_str)
 
 	int res = getnameinfo((struct sockaddr *)&sa, sizeof(sa), host, sizeof(host), NULL, 0, NI_NAMEREQD);
 	if (res != 0)
-	{
-		dprintf(2, "getnameinfo failed: %s\n", gai_strerror(res));
 		return NULL;
-	}
 	return (strdup(host));
 }

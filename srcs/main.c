@@ -32,8 +32,7 @@ void	check_help_usage(t_flag_parser *flags)
 {
 	int	pos_flag;
 
-	if (flags->argc < 2 || flags->extra_args_count < 1)
-	{
+	if (flags->argc < 2) {
 		dprintf(2, "%s: missing host operand\n", flags->argv[0]);
 		dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", flags->argv[0], flags->argv[0]);
 		exit(EXIT_FAILURE);
@@ -45,6 +44,10 @@ void	check_help_usage(t_flag_parser *flags)
 		printf("%s\n", USAGE);
 		cleanup_parser(flags);
 		exit(EXIT_SUCCESS);
+	} if (flags->extra_args_count < 1) {
+		dprintf(2, "%s: missing host operand\n", flags->argv[0]);
+		dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", flags->argv[0], flags->argv[0]);
+		exit(EXIT_FAILURE);
 	}
 }
 
