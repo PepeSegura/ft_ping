@@ -11,6 +11,7 @@ Send ICMP ECHO_REQUEST packets to network hosts.\n\
       --ttl=N                specify N as time-to-live\n\
   -v, --verbose              verbose output\n\
   -w, --timeout=N            stop after N seconds\n\
+  -f, --flood                flood ping\n\
 \n\
  Options valid for --echo requests:\n\
 \n\
@@ -29,6 +30,7 @@ Report bugs to <psegura-@student.42madrid.com>.\
             [-c NUMBER] [--count=NUMBER] \n\
             [-i NUMBER] [--interval=NUMBER]\n\
             [-w NUMBER] [--timeout=NUMBER]\n\
+            [-f]        [--flood]\n\
             [--ttl=N]\n\
             [--quiet]\n\
             HOST ...\
