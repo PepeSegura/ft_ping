@@ -46,5 +46,7 @@ void send_packet(t_ping *p)
 		free(p->ip_addr);
 		exit(1);
 	}
+	if (p->flood_mode == true && p->quiet_mode == false)
+		write(1, ".", 1);
 	p->send_count++;
 }

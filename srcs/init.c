@@ -151,12 +151,21 @@ void    check_flags(t_ping *ping)
 		set_timeout(ping, pos_flag);
 	} if ((pos_flag = check_flag(ping->flags, 'q', "quiet"))    != -1) {
 		ping->quiet_mode = true;
+	} if ((pos_flag = check_flag(ping->flags, 'f', "flood"))    != -1) {
+		ping->flood_mode = true;
 	}
 
 	if (ping->flags->extra_args_count < 1)
 	{
 		dprintf(2, "%s: missing host operand\n", ping->flags->argv[0]);
 		dprintf(2, "Try '%s --help' or '%s --usage' for more information.", ping->flags->argv[0], ping->flags->argv[0]);
+		cleanup_parser(ping->flags);
+		exit(EXIT_FAILURE);
+	}
+
+	if (check_flag(ping->flags, 'f', "flood") != -1 && check_flag(ping->flags, 'i', "interval") != -1)
+	{
+		dprintf(2, "%s: -f and -i incompatible options\n", ping->flags->argv[0]);
 		cleanup_parser(ping->flags);
 		exit(EXIT_FAILURE);
 	}

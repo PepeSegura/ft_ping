@@ -4,7 +4,6 @@ NAME = ft_ping
 
 CFLAGS       = -Wextra -Wall -Werror
 CFLAGS      += -I inc
-CFLAGS      += -O3
 
 LIBS		= -lm
 

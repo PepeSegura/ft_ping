@@ -52,6 +52,7 @@ typedef struct s_ping {
 
 	bool			quiet_mode;
 	bool			verbose_mode;
+	bool			flood_mode;
 	int64_t			total_runtime;
 
 	char			*hostname;

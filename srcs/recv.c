@@ -120,6 +120,7 @@ void recv_packet(t_ping *p)
 		
 		mean_and_stddev(p, rtt_ms);
 
+		if (p->flood_mode == true) { write(1, "\r", 1); break; }
 		if (p->quiet_mode == true) break;
 
 		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",

@@ -69,6 +69,7 @@ int main(int argc, char **argv)
 		INIT_FLAG(0,	"ttl",		NEED_ARG),	// secify N as time-to-live
 		INIT_FLAG('w',	"timeout",	NEED_ARG),	// stop after N seconds
 		INIT_FLAG('q',	"quiet",	NO_ARG	),	// quiet output
+		INIT_FLAG('f',	"flood",	NO_ARG	),	// flood ping
 	};
 
 	t_flag_parser flags = parser_init(available_flags, FLAGS_COUNT(available_flags), argc, argv);
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
 		{
 			send_packet(&p);
 			recv_packet(&p);
-			if (finish == false && p.send_count < p.send_limit && get_time_in_ms() < p.time_end)
+			if (finish == false && p.send_count < p.send_limit && get_time_in_ms() < p.time_end && p.flood_mode == false)
 				usleep(p.send_interval * 1000 * 1000);
 		}
 
