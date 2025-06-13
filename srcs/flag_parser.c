@@ -125,7 +125,7 @@ void	parse(t_flag_parser *parser)
 			t_flag *flag = match_long_flag(parser, name);
 			if (!flag)
 			{
-				dprintf(2, "%s: invalid option -- '%c'\n", parser->argv[0], flag->short_name);
+				dprintf(2, "%s: unrecognized option '--%s'\n", parser->argv[0], name);
 				dprintf(2, "Try '%s --help' or '%s --usage' for more information.\n", parser->argv[0], parser->argv[0]);
 				exit(EXIT_FAILURE);
 			}

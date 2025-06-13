@@ -1,6 +1,6 @@
 #include "ft_ping.h"
 
-static char	*resolve_hostname(const char *hostname)
+static char	*resolve_hostname(const char *hostname, t_ping *ping)
 {
 	struct addrinfo in_info, *result;
 	char ip_str[INET6_ADDRSTRLEN];
@@ -12,7 +12,10 @@ static char	*resolve_hostname(const char *hostname)
 	int ret;
 	if ((ret = getaddrinfo(hostname, NULL, &in_info, &result)) != 0)
 	{
-		dprintf(2, "./ft_ping: %s: %s\n", hostname, gai_strerror(ret));
+		if (ping->verbose_mode == true)
+			dprintf(2, "ft_ping: %s: %s\n", hostname, gai_strerror(ret));
+		else
+			dprintf(2, "ft_ping: unknown host\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -53,7 +56,7 @@ void create_server_socket(t_ping *ping)
 		ping->socket_type = TYPE_DGRAM;
 		goto set_socket_flags;
 	}
-	dprintf(2, "%s: network capabilities disabled\n", ping->flags->argv[0]);
+	dprintf(2, "ft_ping: network capabilities disabled\n");
 	dprintf(2, "Try 'sudo setcap cap_net_raw+ep %s' or 'sudo %s'\n", ping->flags->argv[0], ping->flags->argv[0]);
 	exit(EXIT_FAILURE);
 
@@ -157,7 +160,7 @@ void    check_flags(t_ping *ping)
 
 	if (ping->flags->extra_args_count < 1)
 	{
-		dprintf(2, "%s: missing host operand\n", ping->flags->argv[0]);
+		dprintf(2, "ft_ping: missing host operand\n");
 		dprintf(2, "Try '%s --help' or '%s --usage' for more information.", ping->flags->argv[0], ping->flags->argv[0]);
 		cleanup_parser(ping->flags);
 		exit(EXIT_FAILURE);
@@ -165,7 +168,7 @@ void    check_flags(t_ping *ping)
 
 	if (check_flag(ping->flags, 'f', "flood") != -1 && check_flag(ping->flags, 'i', "interval") != -1)
 	{
-		dprintf(2, "%s: -f and -i incompatible options\n", ping->flags->argv[0]);
+		dprintf(2, "ft_ping: -f and -i incompatible options\n");
 		cleanup_parser(ping->flags);
 		exit(EXIT_FAILURE);
 	}
@@ -187,7 +190,7 @@ void    init_t_ping(t_ping *ping, char *host, t_flag_parser *flags)
 		finish = true;
 
 	ping->hostname = host;
-	ping->ip_addr = resolve_hostname(host);
+	ping->ip_addr = resolve_hostname(host, ping);
 
 	create_server_socket(ping);
 
